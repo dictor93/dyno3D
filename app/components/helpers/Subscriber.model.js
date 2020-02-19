@@ -1,9 +1,9 @@
 class Subscriber {
-  calculate = () => {
+  calculate = (dt) => {
     
   }
-  animate = () => {
-    this.calculate()
+  animate = (dt) => {
+    this.calculate(dt)
   }
 }
 

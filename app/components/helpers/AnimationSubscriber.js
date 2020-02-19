@@ -1,4 +1,11 @@
+const { Clock } = require('three')
+
 class AnimationSubscriber {
+  clock = null
+  constructor() {
+    this.clock = new Clock(true)
+  }
+
   listeners = [];
 
   addListener = (listener) => {
@@ -6,8 +13,9 @@ class AnimationSubscriber {
   }
 
   animateAll = () => {
+    const dt = this.clock.getDelta()
     this.listeners.forEach((listener) => {
-      listener.animate()
+      listener.animate(dt)
     })
   }
 

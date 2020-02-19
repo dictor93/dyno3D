@@ -14,7 +14,6 @@ class Jumper extends Subscriber {
   isDoubleJump = false
   acceleration = -980
   speed = 0
-  prevFrameTime;
   defaultPunchSpeed = 400
 
 
@@ -31,7 +30,7 @@ class Jumper extends Subscriber {
 
       // })
       if(i === 1 && collisions.find(collision => collision.faceIndex === 4)) return true
-      console.log({collisions}, {i})
+      // console.log({collisions}, {i})
       if (i === 0 && collisions.find(collision => (collision.faceIndex === 5 && collision.distance < 4.5))) return true
     })
     return !!onFloor
@@ -57,11 +56,8 @@ class Jumper extends Subscriber {
     this.finishJump()
   }
 
-  calculate = () => {
+  calculate = (dt) => {
     if (this.inJump) {
-      const now = Date.now()
-      const dt = (now - (this.prevFrameTime || now)) / 1000
-      this.prevFrameTime = now
 
       const dv = dt * this.acceleration
       this.speed += dv
