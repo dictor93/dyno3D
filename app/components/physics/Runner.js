@@ -1,4 +1,4 @@
-const { Vector3, Raycaster } = require('three')
+const { Vector3, Raycaster, Box3, Box3Helper, BoxGeometry } = require('three')
 
 import { Subscriber } from '../helpers/Subscriber.model.js'
 import { Jumper } from '../physics/Jumper.js'
@@ -11,6 +11,7 @@ class Runner extends Subscriber {
   mesh = {}
   dir = true
   touchecd = false
+  helper = null
 
   constructor(object) {
     super()
@@ -20,31 +21,22 @@ class Runner extends Subscriber {
     } else {
       this.mesh = object
     }
-    this.raycaster = new Raycaster()
+    this.calculateCollisionBox()
+  }
+
+  calculateCollisionBox = () => {
+    const collisionBox = new Box3(new Vector3(), new Vector3())
+    collisionBox.setFromObject(this.mesh)
+    this.helper = new Box3Helper(collisionBox, 0xffff00)
+    return collisionBox
   }
 
   checkCube() {
-    const rays = [
-      new Vector3(this.dir ? 1 : -1, 0, 0),
-      new Vector3(this.dir ? -1 : 1, 0, 0),
-      new Vector3(this.dir ? 1 : -1, -1, 0),
-      new Vector3(this.dir ? -1 : 1, -1, 0),
-      new Vector3(0, -1, 0),
-    ]
-    rays.find((ray, i) => {
-      this.raycaster.set(this.mesh.position, ray);
-      const collisions = this.raycaster.intersectObjects([cube, platform]);
-      if (collisions.find(col => col.object === cube && col.distance < 10)) {
-        this.touched = true;
-        console.log(i)
-        return true
-      }
-      if((i === 0 || i === 1) && collisions.find(col => col.object === platform && col.distance < 10)) {
-        this.touched = true;
-        console.log(i)
-        return true
-      }
-    })
+    const collisionBox = this.calculateCollisionBox()
+    if(collisionBox.intersectsBox(cube.intersectBox)) {
+      this.touched = true;
+      return true
+    }
   }
 
   reset() {
@@ -57,28 +49,24 @@ class Runner extends Subscriber {
     this.prevFrameTime = Date.now()
   }
 
-  calculate = () => {
+  calculate = (dt) => {
     if (this.object) {
-      this.object.animate()
+      this.object.animate(dt)
     }
-    const now = Date.now()
-    const dt = (now - (this.prevFrameTime || now)) / 1000
-    this.prevFrameTime = now
     this.mesh.runAnimation && this.mesh.runAnimation()
     if (this.mesh.position.x > 200 && this.dir) {
       this.mesh.rotateY(Math.PI)
+      this.helper.rotateY(Math.PI)
       this.dir = false
     }
     if (this.mesh.position.x < -200 && !this.dir) {
       this.mesh.rotateY(-Math.PI)
+      this.helper.rotateY(-Math.PI)
       this.dir = true
     }
     this.mesh.translateX(dt * 100)
+    this.helper.translateX(dt * 100)
     this.checkCube()
-  }
-
-  animate = () => {
-    this.calculate()
   }
 }
 
